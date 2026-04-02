@@ -67,5 +67,9 @@ export async function sendAgentMessage(
     const body = await res.json().catch(() => null) as { error?: string } | null
     throw new Error(body?.error ?? `Agent failed (${res.status})`)
   }
-  return res.json()
+  const data = await res.json() as { reply: string; generatedSound?: { url: string } | null }
+  if (data.generatedSound?.url?.startsWith('/')) {
+    data.generatedSound.url = `${API_URL}${data.generatedSound.url}`
+  }
+  return data
 }
