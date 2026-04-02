@@ -167,7 +167,8 @@ export function AgentPanel() {
     [addAgentMessage, pads, setPadSound]
   )
 
-  const { status: voiceStatus, startSession, endSession } = useElevenLabs({
+  const [muted, setMutedState] = useState(false)
+  const { status: voiceStatus, startSession, endSession, setMuted } = useElevenLabs({
     onMessage: handleVoiceMessage,
     onSoundGenerated: handleSoundGenerated,
   })
@@ -330,54 +331,94 @@ export function AgentPanel() {
             <div ref={bottomRef} />
           </div>
 
-          {/* Input + voice toggle */}
-          <div className="px-4 py-3 border-t flex gap-2 items-center shrink-0" style={{ borderColor: '#1e1e2e' }}>
-            <motion.button
-              className="w-8 h-8 rounded-xl flex items-center justify-center text-sm shrink-0"
-              style={{
-                background: voiceActive ? '#a78bfa' : '#2a2a3e',
-                color: voiceActive ? '#0a0a0f' : 'rgba(255,255,255,0.75)',
-                border: voiceActive ? 'none' : '1px solid rgba(255,255,255,0.15)',
-                transition: 'background 0.15s',
-              }}
-              whileTap={{ scale: 0.9 }}
-              animate={voiceStatus === 'listening' ? { scale: [1, 1.08, 1] } : {}}
-              transition={{ duration: 1.2, repeat: voiceStatus === 'listening' ? Infinity : 0 }}
-              onClick={() => (voiceActive ? endSession() : startSession({ is_returning: isReturning, greeting }))}
-              title={voiceActive ? 'End voice session' : 'Start voice session'}
-            >
-              {voiceStatus === 'connecting' ? (
-                <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 0.8, repeat: Infinity }}>
-                  ◌
-                </motion.span>
-              ) : voiceActive ? (
-                '⏹'
-              ) : (
-                '🎙'
-              )}
-            </motion.button>
+          {/* Input + voice controls */}
+          <div className="px-4 py-3 border-t flex flex-col gap-2 shrink-0" style={{ borderColor: '#1e1e2e' }}>
 
-            <input
-              className="flex-1 bg-transparent text-xs font-mono outline-none py-2 px-3 rounded-xl"
-              style={{ background: '#1e1e2e', color: '#f3f4f6', border: '1px solid #2a2a3a' }}
-              placeholder={voiceActive ? 'Voice active — or type here' : 'Ask the DJ anything...'}
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && send()}
-            />
-            <motion.button
-              className="w-8 h-8 rounded-xl flex items-center justify-center text-xs"
-              style={{
-                background: input.trim() ? '#a78bfa' : '#2a2a3e',
-                color: input.trim() ? '#0a0a0f' : 'rgba(255,255,255,0.75)',
-                transition: 'background 0.15s',
-              }}
-              whileTap={{ scale: 0.9 }}
-              onClick={send}
-              disabled={loading}
-            >
-              ↑
-            </motion.button>
+            {/* Text input row */}
+            <div className="flex gap-2 items-center">
+              <input
+                className="flex-1 bg-transparent text-xs font-mono outline-none py-2 px-3 rounded-xl"
+                style={{ background: '#1e1e2e', color: '#f3f4f6', border: '1px solid #2a2a3a' }}
+                placeholder={voiceActive ? 'Voice active — or type here' : 'Ask the DJ anything...'}
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && send()}
+              />
+              <motion.button
+                className="w-8 h-8 rounded-xl flex items-center justify-center text-xs shrink-0"
+                style={{
+                  background: input.trim() ? '#a78bfa' : '#2a2a3e',
+                  color: input.trim() ? '#0a0a0f' : 'rgba(255,255,255,0.75)',
+                  transition: 'background 0.15s',
+                }}
+                whileTap={{ scale: 0.9 }}
+                onClick={send}
+                disabled={loading}
+              >
+                ↑
+              </motion.button>
+            </div>
+
+            {/* Voice controls row */}
+            <div className="flex gap-2 items-center">
+              {/* Mic / end session button */}
+              <motion.button
+                className="flex-1 h-10 rounded-xl flex items-center justify-center gap-2 text-sm font-mono font-semibold shrink-0"
+                style={{
+                  background: voiceActive
+                    ? voiceStatus === 'listening' ? '#4ade8022' : '#a78bfa22'
+                    : '#2a2a3e',
+                  color: voiceActive
+                    ? voiceStatus === 'listening' ? '#4ade80' : '#a78bfa'
+                    : 'rgba(255,255,255,0.75)',
+                  border: voiceActive
+                    ? `1px solid ${voiceStatus === 'listening' ? '#4ade8044' : '#a78bfa44'}`
+                    : '1px solid rgba(255,255,255,0.15)',
+                  transition: 'all 0.2s',
+                }}
+                whileTap={{ scale: 0.96 }}
+                animate={voiceStatus === 'listening' ? { boxShadow: ['0 0 0px #4ade8000', '0 0 12px #4ade8066', '0 0 0px #4ade8000'] } : { boxShadow: 'none' }}
+                transition={{ duration: 1.4, repeat: voiceStatus === 'listening' ? Infinity : 0 }}
+                onClick={() => { if (voiceActive) { endSession(); setMutedState(false) } else { startSession({ is_returning: isReturning, greeting }) } }}
+                title={voiceActive ? 'End voice session' : 'Start voice session'}
+              >
+                {voiceStatus === 'connecting' ? (
+                  <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 0.8, repeat: Infinity }}>◌</motion.span>
+                ) : voiceActive ? (
+                  <><span>⏹</span><span className="text-xs">End</span></>
+                ) : (
+                  <><span>🎙</span><span className="text-xs">Start Voice</span></>
+                )}
+              </motion.button>
+
+              {/* Mute button — only shown while voice is active */}
+              <AnimatePresence>
+                {voiceActive && (
+                  <motion.button
+                    className="w-10 h-10 rounded-xl flex items-center justify-center text-base shrink-0"
+                    style={{
+                      background: muted ? '#f8717122' : '#2a2a3e',
+                      color: muted ? '#f87171' : 'rgba(255,255,255,0.75)',
+                      border: muted ? '1px solid #f8717144' : '1px solid rgba(255,255,255,0.15)',
+                      transition: 'all 0.15s',
+                    }}
+                    initial={{ opacity: 0, scale: 0.8, width: 0, marginLeft: 0 }}
+                    animate={{ opacity: 1, scale: 1, width: 40 }}
+                    exit={{ opacity: 0, scale: 0.8, width: 0 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => {
+                      const next = !muted
+                      setMutedState(next)
+                      setMuted(next)
+                    }}
+                    title={muted ? 'Unmute mic' : 'Mute mic'}
+                  >
+                    {muted ? '🔇' : '🎤'}
+                  </motion.button>
+                )}
+              </AnimatePresence>
+            </div>
+
           </div>
       </aside>
     </>

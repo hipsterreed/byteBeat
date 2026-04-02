@@ -61,5 +61,9 @@ export function useElevenLabs({ onMessage, onSoundGenerated }: UseElevenLabsOpti
     setStatus('idle')
   }, [])
 
-  return { status, startSession, endSession }
+  const setMuted = useCallback((muted: boolean) => {
+    conversationRef.current?.setMicMuted(muted)
+  }, [])
+
+  return { status, startSession, endSession, setMuted }
 }
