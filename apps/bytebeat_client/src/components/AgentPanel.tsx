@@ -135,7 +135,6 @@ export function AgentPanel() {
 
   const [greeting] = useState("Tell me what sound you want generated and I'll cook it up")
   const bottomRef = useRef<HTMLDivElement>(null)
-  const autoStartedRef = useRef(false)
 
   const handleVoiceMessage = useCallback(
     (role: 'user' | 'agent', content: string) => {
@@ -174,18 +173,6 @@ export function AgentPanel() {
   })
 
   const voiceActive = voiceStatus !== 'idle' && voiceStatus !== 'error'
-
-  // Skip modal entirely if mic is already permitted
-  useEffect(() => {
-    if (autoStartedRef.current) return
-    navigator.permissions?.query({ name: 'microphone' as PermissionName }).then(result => {
-      if (result.state === 'granted') {
-        autoStartedRef.current = true
-        setShowOnboarding(false)
-        startSession({ is_returning: isReturning, greeting })
-      }
-    }).catch(() => null)
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Close onboarding once voice session is live
   useEffect(() => {

@@ -124,13 +124,6 @@ export const useAppStore = create<AppState>((set, get) => ({
           color: defaults[i]?.color ?? '#c4b5fd',
         }))
         set({ pads: restored, bpm: data.bpm ?? 120 })
-
-        // Re-load any assigned sounds into the audio engine
-        for (const pad of restored) {
-          if (pad.soundId && pad.soundUrl) {
-            loadSound(pad.soundId, pad.soundUrl)
-          }
-        }
       }
     } catch {
       // Session load failed — start fresh, no problem
