@@ -1,4 +1,4 @@
-> Built for the <img src="apps/bytebeat_client/src/assets/CF Logo 2.jpg" height="16" valign="middle"> × <picture><source media="(prefers-color-scheme: dark)" srcset="apps/bytebeat_client/src/assets/elevenlabs-logo-white.png"><img src="apps/bytebeat_client/src/assets/elevenlabs-logo-black.png" height="14" valign="middle"></picture> Hackathon — the challenge was to build something creative using [Cloudflare's developer platform](https://developers.cloudflare.com/workers/) and [ElevenLabs](https://elevenlabs.io/conversational-ai).
+> Built for the <img src="apps/bytebeat_client/src/assets/CF Logo 2.jpg" height="28" valign="middle"> × <picture><source media="(prefers-color-scheme: dark)" srcset="apps/bytebeat_client/src/assets/elevenlabs-logo-white.png"><img src="apps/bytebeat_client/src/assets/elevenlabs-logo-black.png" height="14" valign="middle"></picture> Hackathon — the challenge was to build something creative using [Cloudflare's developer platform](https://developers.cloudflare.com/workers/) and [ElevenLabs](https://elevenlabs.io/conversational-ai).
 
 ---
 
@@ -11,6 +11,8 @@
 Talk to your AI DJ, generate custom sounds on the fly, and build beats directly in the browser. No DAW. No samples pack. Just describe what you want and drop it on a pad.
 
 ---
+
+![ByteBeat demo](apps/bytebeat_client/src/assets/bytebeat.gif)
 
 ## How It Works
 
