@@ -13,8 +13,8 @@ export function Toolbar() {
       }}
     >
       <div className="flex items-center gap-3">
-        <img src={bytebeatLogo} alt="ByteBeat" className="h-10 w-auto" />
-        <span className="text-lg font-bold tracking-tight" style={{ color: 'rgba(255,255,255,0.9)' }}>
+        <img src={bytebeatLogo} alt="ByteBeat" className="h-14 w-auto" />
+        <span className="text-3xl font-bold tracking-tight" style={{ color: 'rgba(255,255,255,0.9)' }}>
           ByteBeat
         </span>
       </div>

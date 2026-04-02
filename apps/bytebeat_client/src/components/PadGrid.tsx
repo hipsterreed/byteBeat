@@ -1,20 +1,42 @@
 import { useAppStore } from '../stores/useAppStore'
 import { Pad } from './Pad'
+import { useState, useRef, useCallback } from 'react'
 
-// Decorative rotary knob with arc ring indicator
-function Knob({ label, color, value = 0.65 }: { label: string; color: string; value?: number }) {
+// Decorative rotary knob — draggable but purely visual
+function Knob({ label, color, value: initialValue = 0.65 }: { label: string; color: string; value?: number }) {
+  const [value, setValue] = useState(initialValue)
+  const lastY = useRef<number | null>(null)
+
   const indicatorDeg = -135 + value * 270
-  // Arc spans 270°. value * 75% fills that portion of the conic gradient.
   const arcFill = value * 75
+
+  const onPointerDown = useCallback((e: React.PointerEvent) => {
+    e.currentTarget.setPointerCapture(e.pointerId)
+    lastY.current = e.clientY
+  }, [])
+
+  const onPointerMove = useCallback((e: React.PointerEvent) => {
+    if (lastY.current === null) return
+    const delta = (lastY.current - e.clientY) / 120
+    lastY.current = e.clientY
+    setValue(v => Math.min(1, Math.max(0, v + delta)))
+  }, [])
+
+  const onPointerUp = useCallback(() => {
+    lastY.current = null
+  }, [])
 
   return (
     <div className="flex flex-col items-center gap-[7px]">
       <div
-        className="relative w-12 h-12 rounded-full"
+        className="relative w-12 h-12 rounded-full cursor-grab active:cursor-grabbing"
         style={{
           background: 'linear-gradient(145deg, #222230 0%, #0d0d14 100%)',
           boxShadow: `0 5px 12px rgba(0,0,0,0.88), 0 1px 3px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.09), inset 0 -1px 0 rgba(0,0,0,0.55)`,
         }}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
       >
         {/* Conic ring indicator arc */}
         <div
@@ -39,7 +61,7 @@ function Knob({ label, color, value = 0.65 }: { label: string; color: string; va
         />
         {/* Indicator line */}
         <div
-          className="absolute inset-0"
+          className="absolute inset-0 pointer-events-none"
           style={{ transform: `rotate(${indicatorDeg}deg)` }}
         >
           <div
@@ -53,7 +75,7 @@ function Knob({ label, color, value = 0.65 }: { label: string; color: string; va
       </div>
 
       <span
-        className="text-[9px] font-mono tracking-[0.15em] uppercase"
+        className="text-[9px] font-mono tracking-[0.15em] uppercase select-none"
         style={{ color: 'rgba(255,255,255,0.55)' }}
       >
         {label}

@@ -92,6 +92,7 @@ interface AppState {
   toggleAgent: () => void
   addAgentMessage: (msg: AgentMessage) => void
   setSelectingSound: (sound: Sound | null) => void
+  flashPad: (padId: string) => void
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -187,6 +188,10 @@ export const useAppStore = create<AppState>((set, get) => ({
     debouncedSave(sessionId, pads, bpm)
   },
 
+  flashPad: (padId: string) => {
+    set(s => ({ activePadIds: [...s.activePadIds, padId] }))
+    setTimeout(() => set(s => ({ activePadIds: s.activePadIds.filter(id => id !== padId) })), 220)
+  },
   togglePlay: () => set(s => ({ isPlaying: !s.isPlaying })),
   setEditingPad: (padId) => set({ editingPadId: padId }),
   toggleAgent: () => set(s => ({ agentOpen: !s.agentOpen })),

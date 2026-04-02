@@ -4,6 +4,7 @@ import { PadGrid } from './components/PadGrid'
 import { SoundModal } from './components/SoundModal'
 import { AgentPanel } from './components/AgentPanel'
 import { useAppStore } from './stores/useAppStore'
+import { useDemoMode } from './hooks/useDemoMode'
 
 export default function App() {
   const initSession = useAppStore(s => s.initSession)
@@ -11,6 +12,8 @@ export default function App() {
   useEffect(() => {
     initSession()
   }, [initSession])
+
+  useDemoMode()
 
   // Dynamic underglow reacts to whichever pad is currently active
   const activePadIds = useAppStore(s => s.activePadIds)
@@ -64,7 +67,7 @@ export default function App() {
             </div>
           </div>
 
-          <p className="text-[11px] font-mono" style={{ color: 'rgba(255,255,255,0.3)' }}>
+          <p className="text-[11px] font-mono" style={{ color: '#ffffff' }}>
             click a pad to play · click + to assign a sound
           </p>
         </main>
