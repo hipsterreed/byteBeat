@@ -15,7 +15,7 @@ class_name = "TimelineDurableObject"
 
 [[migrations]]
 tag = "v1"
-new_classes = ["SessionDurableObject", "TimelineDurableObject"]
+new_sqlite_classes = ["SessionDurableObject", "TimelineDurableObject"]
 
 # Vectorize index for sound search
 [[vectorize]]

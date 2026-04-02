@@ -1,6 +1,8 @@
-> Built for the <img src="apps/bytebeat_client/src/assets/CF-Logo 1.png" height="16" valign="middle"> × <picture><source media="(prefers-color-scheme: dark)" srcset="apps/bytebeat_client/src/assets/elevenlabs-logo-white.png"><img src="apps/bytebeat_client/src/assets/elevenlabs-logo-black.png" height="14" valign="middle"></picture> Hackathon — the challenge was to build something creative using [Cloudflare's developer platform](https://developers.cloudflare.com/workers/) and [ElevenLabs](https://elevenlabs.io/conversational-ai).
+> Built for the <picture><source media="(prefers-color-scheme: dark)" srcset="apps/bytebeat_client/src/assets/CF Logo 2.jpg"><img src="apps/bytebeat_client/src/assets/CF-Logo 1.png" height="16" valign="middle"></picture> × <picture><source media="(prefers-color-scheme: dark)" srcset="apps/bytebeat_client/src/assets/elevenlabs-logo-white.png"><img src="apps/bytebeat_client/src/assets/elevenlabs-logo-black.png" height="14" valign="middle"></picture> Hackathon — the challenge was to build something creative using [Cloudflare's developer platform](https://developers.cloudflare.com/workers/) and [ElevenLabs](https://elevenlabs.io/conversational-ai).
 
 ---
+
+<img src="apps/bytebeat_client/src/assets/bytebeat_logo.png" alt="ByteBeat" height="48"></br>
 
 # ByteBeat
 

@@ -16,28 +16,32 @@ export function Pad({ pad, isActive, isSelecting, onTrigger, onEdit, onSelect }:
   const c = pad.color
   const hasSound = !!pad.soundId
 
-  // Background: vibrant color mixed into a cool near-white base
-  const base = '#ebebf4'
+  // Lit pads: vibrant color on near-white base. Unlit: dark/off.
+  const litBase = '#ebebf4'
   const bg = isActive
-    ? `color-mix(in srgb, ${c} 72%, ${base})`
-    : hovered
-      ? `color-mix(in srgb, ${c} ${hasSound ? 58 : 22}%, ${base})`
-      : hasSound
-        ? `color-mix(in srgb, ${c} 42%, ${base})`
-        : `color-mix(in srgb, ${c} 7%, ${base})`
+    ? `color-mix(in srgb, ${c} 72%, ${litBase})`
+    : hasSound
+      ? hovered
+        ? `color-mix(in srgb, ${c} 58%, ${litBase})`
+        : `color-mix(in srgb, ${c} 42%, ${litBase})`
+      : hovered
+        ? '#f0f0f6'
+        : '#d0d0dc'
 
-  // Dark text: deep tint of the accent, readable on the vibrant surface
-  const darkText = `color-mix(in srgb, ${c} 60%, #060610)`
+  // Lit pads: dark tinted text. Unlit: dark gray.
+  const textColor = hasSound
+    ? `color-mix(in srgb, ${c} 60%, #060610)`
+    : 'rgba(0,0,0,0.55)'
 
   const shadow = isActive
     ? `0 0 0 1px ${c}cc, 0 0 22px ${c}ee, 0 0 50px ${c}99, 0 0 90px ${c}55, inset 0 1px 1px rgba(255,255,255,0.7), inset 0 0 22px ${c}44`
     : hovered && hasSound
       ? `0 5px 16px rgba(0,0,0,0.5), 0 2px 4px rgba(0,0,0,0.4), 0 0 28px ${c}99, 0 0 50px ${c}55, inset 0 1px 1px rgba(255,255,255,0.95), inset 0 -2px 4px rgba(0,0,0,0.06)`
       : hovered
-        ? `0 5px 16px rgba(0,0,0,0.6), 0 2px 4px rgba(0,0,0,0.45), 0 0 18px ${c}55, inset 0 1px 1px rgba(255,255,255,0.92), inset 0 -2px 4px rgba(0,0,0,0.07)`
+        ? `0 5px 16px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.9), inset 0 -2px 6px rgba(0,0,0,0.08)`
         : hasSound
           ? `0 0 0 1px ${c}66, 0 6px 18px rgba(0,0,0,0.55), 0 0 18px ${c}77, 0 0 38px ${c}44, inset 0 1px 1px rgba(255,255,255,0.95), inset 0 -2px 7px rgba(0,0,0,0.08)`
-          : `0 7px 18px rgba(0,0,0,0.72), 0 2px 5px rgba(0,0,0,0.55), inset 0 1px 1px rgba(255,255,255,0.92), inset 0 -2px 7px rgba(0,0,0,0.12)`
+          : `inset 0 1px 1px rgba(255,255,255,0.7), inset 0 -2px 6px rgba(0,0,0,0.12)`
 
   return (
     <div
@@ -68,7 +72,7 @@ export function Pad({ pad, isActive, isSelecting, onTrigger, onEdit, onSelect }:
 
       {/* Pad surface */}
       <motion.div
-        className="relative w-full h-full rounded-[10px] cursor-pointer select-none flex flex-col justify-between p-2.5 overflow-hidden"
+        className={`relative w-full h-full rounded-[10px] cursor-pointer select-none flex flex-col p-2.5 overflow-hidden ${hasSound ? 'justify-between' : 'items-center justify-center'}`}
         style={{ background: bg, boxShadow: isSelecting ? `${shadow}, 0 0 0 2px ${c}99` : shadow, transition: 'background 0.12s ease, box-shadow 0.12s ease' }}
         animate={isSelecting ? { rotate: [-1.5, 1.5, -1.5] } : { rotate: 0 }}
         transition={isSelecting
@@ -139,59 +143,62 @@ export function Pad({ pad, isActive, isSelecting, onTrigger, onEdit, onSelect }:
           )}
         </AnimatePresence>
 
-        {/* Top row: pad number + edit button */}
-        <div className="relative flex items-start justify-between z-10">
-          <span
-            className="text-[13px] font-bold leading-none"
-            style={{
-              color: hasSound || hovered ? darkText : 'rgba(0,0,0,0.4)',
-            }}
-          >
-            {pad.label}
-          </span>
+        {hasSound ? (
+          <>
+            {/* Top row: pad number + edit button */}
+            <div className="relative flex items-start justify-between z-10">
+              <span className="text-[13px] font-bold leading-none" style={{ color: textColor }}>
+                {pad.label}
+              </span>
+              <motion.button
+                className="w-[18px] h-[18px] rounded-[5px] flex items-center justify-center text-[10px] leading-none"
+                style={{
+                  color: 'white',
+                  background: `${c}cc`,
+                  opacity: hovered ? 1 : 0,
+                  boxShadow: `0 0 8px ${c}99`,
+                  transition: 'opacity 0.12s',
+                }}
+                whileTap={{ scale: 0.82 }}
+                onClick={e => { e.stopPropagation(); onEdit() }}
+              >
+                +
+              </motion.button>
+            </div>
 
-          <motion.button
-            className="w-[18px] h-[18px] rounded-[5px] flex items-center justify-center text-[10px] leading-none"
-            style={{
-              color: 'white',
-              background: `${c}cc`,
-              opacity: hovered ? 1 : 0,
-              boxShadow: `0 0 8px ${c}99`,
-              transition: 'opacity 0.12s',
-            }}
-            whileTap={{ scale: 0.82 }}
-            onClick={e => { e.stopPropagation(); onEdit() }}
-          >
-            +
-          </motion.button>
-        </div>
+            {/* Animated waveform bars while active */}
+            {isActive && (
+              <div className="relative flex items-end justify-center gap-[2.5px] h-[18px] z-10">
+                {[0.5, 0.75, 1, 0.6, 0.85, 0.5, 0.7].map((h, i) => (
+                  <motion.div
+                    key={i}
+                    className="w-[2.5px] rounded-full"
+                    style={{ background: textColor }}
+                    animate={{ scaleY: [h, h * 0.4, h * 1.2, h * 0.55, h] }}
+                    transition={{ duration: 0.44, repeat: Infinity, delay: i * 0.06, ease: 'easeInOut' }}
+                  />
+                ))}
+              </div>
+            )}
 
-        {/* Animated waveform bars while active */}
-        {isActive && (
-          <div className="relative flex items-end justify-center gap-[2.5px] h-[18px] z-10">
-            {[0.5, 0.75, 1, 0.6, 0.85, 0.5, 0.7].map((h, i) => (
-              <motion.div
-                key={i}
-                className="w-[2.5px] rounded-full"
-                style={{ background: darkText }}
-                animate={{ scaleY: [h, h * 0.4, h * 1.2, h * 0.55, h] }}
-                transition={{ duration: 0.44, repeat: Infinity, delay: i * 0.06, ease: 'easeInOut' }}
-              />
-            ))}
+            {/* Bottom: sound name */}
+            <div className="relative z-10">
+              <p className="text-[11px] font-mono leading-tight truncate" style={{ color: textColor }}>
+                {pad.soundName}
+              </p>
+            </div>
+          </>
+        ) : (
+          /* Empty: centered label */
+          <div className="flex flex-col items-center gap-1 z-10">
+            <span className="text-[15px] font-bold leading-none" style={{ color: textColor }}>
+              {pad.label}
+            </span>
+            <span className="text-[9px] font-mono uppercase tracking-widest" style={{ color: textColor, opacity: 0.6 }}>
+              empty
+            </span>
           </div>
         )}
-
-        {/* Bottom: sound name */}
-        <div className="relative z-10">
-          <p
-            className="text-[11px] font-mono leading-tight truncate"
-            style={{
-              color: hasSound ? darkText : 'rgba(0,0,0,0.35)',
-            }}
-          >
-            {pad.soundName ?? 'empty'}
-          </p>
-        </div>
       </motion.div>
     </div>
   )

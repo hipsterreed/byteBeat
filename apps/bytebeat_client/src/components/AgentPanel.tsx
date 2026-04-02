@@ -132,6 +132,8 @@ export function AgentPanel() {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [showOnboarding, setShowOnboarding] = useState(true)
+
+  const [greeting] = useState("Tell me what sound you want generated and I'll cook it up")
   const bottomRef = useRef<HTMLDivElement>(null)
   const autoStartedRef = useRef(false)
 
@@ -180,7 +182,7 @@ export function AgentPanel() {
       if (result.state === 'granted') {
         autoStartedRef.current = true
         setShowOnboarding(false)
-        startSession({ is_returning: isReturning })
+        startSession({ is_returning: isReturning, greeting })
       }
     }).catch(() => null)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
@@ -219,13 +221,6 @@ export function AgentPanel() {
     }
   }
 
-  const QUICK_PROMPTS = [
-    'Suggest a beat pattern',
-    'What BPM should I use?',
-    'Generate me a kick sound',
-    'Make it more lo-fi',
-  ]
-
   return (
     <>
       <AnimatePresence>
@@ -233,7 +228,7 @@ export function AgentPanel() {
           <VoiceOnboardingModal
             voiceStatus={voiceStatus}
             isReturning={isReturning}
-            onEnable={() => startSession({ is_returning: isReturning })}
+            onEnable={() => startSession({ is_returning: isReturning, greeting })}
             onSkip={() => setShowOnboarding(false)}
           />
         )}
@@ -275,9 +270,6 @@ export function AgentPanel() {
               )}
             </AnimatePresence>
 
-            <span className="text-xs ml-auto" style={{ color: '#3a3a5a' }}>
-              {voiceActive ? 'ElevenLabs' : 'Workers AI'}
-            </span>
           </div>
 
           {/* Speaking visualizer */}
@@ -305,6 +297,18 @@ export function AgentPanel() {
 
           {/* Messages */}
           <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3">
+            {messages.length === 0 && (
+              <motion.div
+                className="flex-1 flex items-center justify-center text-center px-4"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.3 }}
+              >
+                <p className="text-sm font-mono" style={{ color: '#3a3a5a' }}>
+                  {greeting}
+                </p>
+              </motion.div>
+            )}
             {messages.map(msg => (
               <motion.div
                 key={msg.id}
@@ -343,34 +347,20 @@ export function AgentPanel() {
             <div ref={bottomRef} />
           </div>
 
-          {/* Quick prompts */}
-          <div className="px-4 py-2 flex flex-wrap gap-1.5 border-t" style={{ borderColor: '#1e1e2e' }}>
-            {QUICK_PROMPTS.map(q => (
-              <button
-                key={q}
-                className="text-[10px] font-mono px-2 py-1 rounded-lg"
-                style={{ background: '#1e1e2e', color: '#6b6b80', border: '1px solid #2a2a3a' }}
-                onClick={() => setInput(q)}
-              >
-                {q}
-              </button>
-            ))}
-          </div>
-
           {/* Input + voice toggle */}
           <div className="px-4 py-3 border-t flex gap-2 items-center shrink-0" style={{ borderColor: '#1e1e2e' }}>
             <motion.button
               className="w-8 h-8 rounded-xl flex items-center justify-center text-sm shrink-0"
               style={{
-                background: voiceActive ? '#a78bfa' : '#1e1e2e',
-                color: voiceActive ? '#0a0a0f' : '#6b6b80',
-                border: voiceActive ? 'none' : '1px solid #2a2a3a',
+                background: voiceActive ? '#a78bfa' : '#2a2a3e',
+                color: voiceActive ? '#0a0a0f' : 'rgba(255,255,255,0.75)',
+                border: voiceActive ? 'none' : '1px solid rgba(255,255,255,0.15)',
                 transition: 'background 0.15s',
               }}
               whileTap={{ scale: 0.9 }}
               animate={voiceStatus === 'listening' ? { scale: [1, 1.08, 1] } : {}}
               transition={{ duration: 1.2, repeat: voiceStatus === 'listening' ? Infinity : 0 }}
-              onClick={() => (voiceActive ? endSession() : startSession())}
+              onClick={() => (voiceActive ? endSession() : startSession({ is_returning: isReturning, greeting }))}
               title={voiceActive ? 'End voice session' : 'Start voice session'}
             >
               {voiceStatus === 'connecting' ? (
@@ -395,8 +385,8 @@ export function AgentPanel() {
             <motion.button
               className="w-8 h-8 rounded-xl flex items-center justify-center text-xs"
               style={{
-                background: input.trim() ? '#a78bfa' : '#1e1e2e',
-                color: input.trim() ? '#0a0a0f' : '#3a3a5a',
+                background: input.trim() ? '#a78bfa' : '#2a2a3e',
+                color: input.trim() ? '#0a0a0f' : 'rgba(255,255,255,0.75)',
                 transition: 'background 0.15s',
               }}
               whileTap={{ scale: 0.9 }}
