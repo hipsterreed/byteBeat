@@ -169,11 +169,20 @@ export function AgentPanel() {
     [addAgentMessage, pads, setPadSound]
   )
 
+  const generatingMsgIdRef = useRef<string | null>(null)
+
+  const handleToolStart = useCallback((prompt: string) => {
+    const id = crypto.randomUUID()
+    generatingMsgIdRef.current = id
+    addAgentMessage({ id, role: 'agent', content: `Cooking up "${prompt}"...`, timestamp: Date.now() })
+  }, [addAgentMessage])
+
   const [muted, setMutedState] = useState(false)
   const voiceStartTimeRef = useRef<number | null>(null)
   const { status: voiceStatus, startSession, endSession, setMuted } = useElevenLabs({
     onMessage: handleVoiceMessage,
     onSoundGenerated: handleSoundGenerated,
+    onToolStart: handleToolStart,
   })
 
   const voiceActive = voiceStatus !== 'idle' && voiceStatus !== 'error'
