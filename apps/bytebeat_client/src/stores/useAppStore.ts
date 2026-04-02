@@ -7,6 +7,7 @@ import {
   isLoaded,
 } from '../lib/audioEngine'
 import { loadSession, saveSession } from '../lib/api'
+import { analytics } from '../lib/analytics'
 
 // Neon pastel undertones — white by default, color lives inside like light through frosted glass
 const PAD_COLORS = [
@@ -130,6 +131,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
 
     set({ sessionLoaded: true })
+    analytics.sessionStarted(sessionId)
   },
 
   triggerPad: async (padId) => {
@@ -137,19 +139,20 @@ export const useAppStore = create<AppState>((set, get) => ({
     const pad = get().pads.find(p => p.id === padId)
     if (!pad?.soundId) return
 
-    // Load on demand — handles session restore where sounds aren't pre-loaded
     if (!isLoaded(pad.soundId) && pad.soundUrl) {
       await loadSound(pad.soundId, pad.soundUrl)
     }
 
     set(s => ({ activePadIds: [...s.activePadIds, padId] }))
     triggerAudio(pad.soundId)
+    analytics.padTriggered(pad.label, pad.soundName ?? pad.soundId)
     setTimeout(() => {
       set(s => ({ activePadIds: s.activePadIds.filter(id => id !== padId) }))
     }, 250)
   },
 
   setPadSound: (padId, sound) => {
+    const pad = get().pads.find(p => p.id === padId)
     set(s => ({
       pads: s.pads.map(p =>
         p.id === padId
@@ -159,11 +162,13 @@ export const useAppStore = create<AppState>((set, get) => ({
       editingPadId: null,
     }))
     if (sound.url) loadSound(sound.id, sound.url)
+    analytics.soundAssigned(pad?.label ?? padId, sound.name, sound.category ?? 'misc', 'library')
     const { pads, bpm, sessionId } = get()
     debouncedSave(sessionId, pads, bpm)
   },
 
   clearPadSound: (padId) => {
+    const pad = get().pads.find(p => p.id === padId)
     set(s => ({
       pads: s.pads.map(p =>
         p.id === padId
@@ -171,6 +176,7 @@ export const useAppStore = create<AppState>((set, get) => ({
           : p
       ),
     }))
+    analytics.soundCleared(pad?.label ?? padId)
     const { pads, bpm, sessionId } = get()
     debouncedSave(sessionId, pads, bpm)
   },

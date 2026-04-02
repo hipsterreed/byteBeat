@@ -5,6 +5,7 @@ import { sendAgentMessage } from '../lib/api'
 import { useElevenLabs } from '../hooks/useElevenLabs'
 import { VoiceOnboardingModal } from './VoiceOnboardingModal'
 import { previewSound } from '../lib/audioEngine'
+import { analytics } from '../lib/analytics'
 import type { Sound } from '../types'
 
 const STATUS_LABEL: Record<string, string> = {
@@ -154,6 +155,7 @@ export function AgentPanel() {
       // Auto-play via audio engine
       previewSound(sound.id, sound.url).catch(() => null)
 
+      analytics.agentSoundGenerated(sound.prompt ?? '', sound.name)
       addAgentMessage({
         id: crypto.randomUUID(),
         role: 'agent',
@@ -168,6 +170,7 @@ export function AgentPanel() {
   )
 
   const [muted, setMutedState] = useState(false)
+  const voiceStartTimeRef = useRef<number | null>(null)
   const { status: voiceStatus, startSession, endSession, setMuted } = useElevenLabs({
     onMessage: handleVoiceMessage,
     onSoundGenerated: handleSoundGenerated,
@@ -192,6 +195,7 @@ export function AgentPanel() {
     setInput('')
 
     addAgentMessage({ id: crypto.randomUUID(), role: 'user', content: text, timestamp: Date.now() })
+    analytics.agentMessageSent(text)
     setLoading(true)
 
     try {
@@ -379,7 +383,20 @@ export function AgentPanel() {
                 whileTap={{ scale: 0.96 }}
                 animate={voiceStatus === 'listening' ? { boxShadow: ['0 0 0px #4ade8000', '0 0 12px #4ade8066', '0 0 0px #4ade8000'] } : { boxShadow: 'none' }}
                 transition={{ duration: 1.4, repeat: voiceStatus === 'listening' ? Infinity : 0 }}
-                onClick={() => { if (voiceActive) { endSession(); setMutedState(false) } else { startSession({ is_returning: isReturning, greeting }) } }}
+                onClick={() => {
+                  if (voiceActive) {
+                    endSession()
+                    setMutedState(false)
+                    if (voiceStartTimeRef.current) {
+                      analytics.voiceSessionEnded(Date.now() - voiceStartTimeRef.current)
+                      voiceStartTimeRef.current = null
+                    }
+                  } else {
+                    startSession({ is_returning: isReturning, greeting })
+                    voiceStartTimeRef.current = Date.now()
+                    analytics.voiceSessionStarted()
+                  }
+                }}
                 title={voiceActive ? 'End voice session' : 'Start voice session'}
               >
                 {voiceStatus === 'connecting' ? (
@@ -410,6 +427,7 @@ export function AgentPanel() {
                       const next = !muted
                       setMutedState(next)
                       setMuted(next)
+                      next ? analytics.voiceMuted() : analytics.voiceUnmuted()
                     }}
                     title={muted ? 'Unmute mic' : 'Mute mic'}
                   >

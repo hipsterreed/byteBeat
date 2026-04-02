@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useAppStore } from '../stores/useAppStore'
 import { generateSound, getCommunitySounds } from '../lib/api'
 import { previewSound } from '../lib/audioEngine'
+import { analytics } from '../lib/analytics'
 import type { Sound } from '../types'
 
 const SUGGESTIONS = [
@@ -71,6 +72,7 @@ export function SoundModal() {
       setError(null)
       setGenerated(null)
       setTimeout(() => inputRef.current?.focus(), 120)
+      analytics.soundModalOpened(pad?.label ?? '')
     }
   }, [open, editingPadId])
 
@@ -88,12 +90,16 @@ export function SoundModal() {
     setLoading(true)
     setError(null)
     setGenerated(null)
+    analytics.soundGenerateClicked(prompt.trim())
     try {
       const sound = await generateSound(prompt.trim())
       setGenerated(sound)
       setCommunity(s => [sound, ...s.filter(x => x.id !== sound.id)])
+      analytics.soundGenerated(prompt.trim(), sound.name, sound.category ?? 'misc')
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Generation failed')
+      const msg = e instanceof Error ? e.message : 'Generation failed'
+      setError(msg)
+      analytics.soundGenerateFailed(prompt.trim(), msg)
     } finally {
       setLoading(false)
     }
@@ -101,6 +107,7 @@ export function SoundModal() {
 
   function handleUse(sound: Sound) {
     if (!editingPadId) return
+    analytics.soundAssigned(pad?.label ?? '', sound.name, sound.category ?? 'misc', generated?.id === sound.id ? 'generated' : 'library')
     setPadSound(editingPadId, sound)
     close()
   }
