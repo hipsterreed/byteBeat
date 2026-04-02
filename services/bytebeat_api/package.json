@@ -1,0 +1,17 @@
+{
+  "name": "bytebeat_api",
+  "module": "index.ts",
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260402.1",
+    "@types/bun": "latest",
+    "wrangler": "^4.79.0"
+  },
+  "peerDependencies": {
+    "typescript": "^6.0.2"
+  },
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "hono": "^4.12.9"
+  }
+}
