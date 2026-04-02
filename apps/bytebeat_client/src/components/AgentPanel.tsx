@@ -259,28 +259,24 @@ export function AgentPanel() {
 
           </div>
 
-          {/* Speaking visualizer */}
-          <AnimatePresence>
-            {voiceStatus === 'speaking' && (
+          {/* Speaking visualizer — fixed height so it never causes layout shift */}
+          <div
+            className="flex items-center justify-center gap-1 shrink-0"
+            style={{ height: 28, borderBottom: '1px solid #1e1e2e', background: '#a78bfa08' }}
+          >
+            {Array.from({ length: 7 }).map((_, i) => (
               <motion.div
-                className="flex items-center justify-center gap-1 py-2"
-                style={{ background: '#a78bfa08', borderBottom: '1px solid #1e1e2e' }}
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-              >
-                {Array.from({ length: 7 }).map((_, i) => (
-                  <motion.div
-                    key={i}
-                    className="w-1 rounded-full"
-                    style={{ background: '#a78bfa' }}
-                    animate={{ height: [4, 16, 4] }}
-                    transition={{ duration: 0.6, repeat: Infinity, delay: i * 0.08, ease: 'easeInOut' }}
-                  />
-                ))}
-              </motion.div>
-            )}
-          </AnimatePresence>
+                key={i}
+                className="w-1 rounded-full"
+                style={{ background: '#a78bfa' }}
+                animate={voiceStatus === 'speaking'
+                  ? { height: [4, 16, 4], opacity: 1 }
+                  : { height: 3, opacity: 0.15 }
+                }
+                transition={{ duration: 0.6, repeat: voiceStatus === 'speaking' ? Infinity : 0, delay: i * 0.08, ease: 'easeInOut' }}
+              />
+            ))}
+          </div>
 
           {/* Messages */}
           <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3">
