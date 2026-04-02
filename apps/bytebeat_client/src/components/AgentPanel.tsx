@@ -159,9 +159,7 @@ export function AgentPanel() {
       addAgentMessage({
         id: crypto.randomUUID(),
         role: 'agent',
-        content: slotNumber != null
-          ? `Added "${sound.name}" to pad ${slotNumber}.`
-          : `Here's your sound: "${sound.name}"`,
+        content: '',
         timestamp: Date.now(),
         sound,
       })
@@ -169,20 +167,12 @@ export function AgentPanel() {
     [addAgentMessage, pads, setPadSound]
   )
 
-  const generatingMsgIdRef = useRef<string | null>(null)
-
-  const handleToolStart = useCallback((prompt: string) => {
-    const id = crypto.randomUUID()
-    generatingMsgIdRef.current = id
-    addAgentMessage({ id, role: 'agent', content: `Cooking up "${prompt}"...`, timestamp: Date.now() })
-  }, [addAgentMessage])
 
   const [muted, setMutedState] = useState(false)
   const voiceStartTimeRef = useRef<number | null>(null)
   const { status: voiceStatus, startSession, endSession, setMuted } = useElevenLabs({
     onMessage: handleVoiceMessage,
     onSoundGenerated: handleSoundGenerated,
-    onToolStart: handleToolStart,
   })
 
   const voiceActive = voiceStatus !== 'idle' && voiceStatus !== 'error'
@@ -313,16 +303,18 @@ export function AgentPanel() {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
               >
-                <div
-                  className="max-w-[85%] px-3 py-2 rounded-2xl text-xs font-mono leading-relaxed"
-                  style={
-                    msg.role === 'user'
-                      ? { background: '#a78bfa22', color: '#e2d9f3', border: '1px solid #a78bfa44', borderBottomRightRadius: 4 }
-                      : { background: '#1e1e2e', color: '#c8c8d8', border: '1px solid #2a2a3a', borderBottomLeftRadius: 4 }
-                  }
-                >
-                  {msg.content}
-                </div>
+                {msg.content && (
+                  <div
+                    className="max-w-[85%] px-3 py-2 rounded-2xl text-xs font-mono leading-relaxed"
+                    style={
+                      msg.role === 'user'
+                        ? { background: '#a78bfa22', color: '#e2d9f3', border: '1px solid #a78bfa44', borderBottomRightRadius: 4 }
+                        : { background: '#1e1e2e', color: '#c8c8d8', border: '1px solid #2a2a3a', borderBottomLeftRadius: 4 }
+                    }
+                  >
+                    {msg.content}
+                  </div>
+                )}
                 {msg.sound && (
                   <div className="w-[85%]">
                     <SoundCard sound={msg.sound} />

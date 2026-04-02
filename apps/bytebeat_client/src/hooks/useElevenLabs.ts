@@ -8,10 +8,9 @@ export type VoiceStatus = 'idle' | 'connecting' | 'listening' | 'speaking' | 'er
 interface UseElevenLabsOptions {
   onMessage?: (role: 'user' | 'agent', content: string) => void
   onSoundGenerated?: (sound: Sound, slotNumber?: number) => void
-  onToolStart?: (prompt: string) => void
 }
 
-export function useElevenLabs({ onMessage, onSoundGenerated, onToolStart }: UseElevenLabsOptions = {}) {
+export function useElevenLabs({ onMessage, onSoundGenerated }: UseElevenLabsOptions = {}) {
   const [status, setStatus] = useState<VoiceStatus>('idle')
   const conversationRef = useRef<Conversation | null>(null)
 
@@ -29,7 +28,6 @@ export function useElevenLabs({ onMessage, onSoundGenerated, onToolStart }: UseE
         ...(dynamicVariables ? { dynamicVariables } : {}),
         clientTools: {
           generate_sound: async ({ prompt, name, slot_number }: { prompt: string; name?: string; slot_number?: number }) => {
-            onToolStart?.(name ?? prompt)
             try {
               const sound = await generateSound(prompt, name)
               onSoundGenerated?.(sound, slot_number)
