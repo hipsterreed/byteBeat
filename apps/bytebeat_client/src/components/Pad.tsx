@@ -16,14 +16,18 @@ export function Pad({ pad, isActive, isSelecting, onTrigger, onEdit, onSelect }:
   const c = pad.color
   const hasSound = !!pad.soundId
 
-  // Background: empty = barely-tinted white, loaded = clearly colored, active = full bloom
+  // Background: vibrant color mixed into a cool near-white base
+  const base = '#ebebf4'
   const bg = isActive
-    ? `color-mix(in srgb, ${c} 65%, white)`
+    ? `color-mix(in srgb, ${c} 72%, ${base})`
     : hovered
-      ? `color-mix(in srgb, ${c} ${hasSound ? 58 : 22}%, white)`
+      ? `color-mix(in srgb, ${c} ${hasSound ? 58 : 22}%, ${base})`
       : hasSound
-        ? `color-mix(in srgb, ${c} 48%, white)`
-        : `color-mix(in srgb, ${c} 9%, white)`
+        ? `color-mix(in srgb, ${c} 42%, ${base})`
+        : `color-mix(in srgb, ${c} 7%, ${base})`
+
+  // Dark text: deep tint of the accent, readable on the vibrant surface
+  const darkText = `color-mix(in srgb, ${c} 60%, #060610)`
 
   const shadow = isActive
     ? `0 0 0 1px ${c}cc, 0 0 22px ${c}ee, 0 0 50px ${c}99, 0 0 90px ${c}55, inset 0 1px 1px rgba(255,255,255,0.7), inset 0 0 22px ${c}44`
@@ -37,10 +41,10 @@ export function Pad({ pad, isActive, isSelecting, onTrigger, onEdit, onSelect }:
 
   return (
     <div
-      className="relative aspect-[4/3] rounded-[15px] p-[5px]"
+      className="relative aspect-[4/3] rounded-[16px] p-[7px]"
       style={{
-        background: '#05050b',
-        boxShadow: 'inset 0 3px 10px rgba(0,0,0,0.97), inset 0 0 0 1px rgba(0,0,0,0.75)',
+        background: '#020207',
+        boxShadow: '0 0 0 1px rgba(0,0,0,0.9), inset 0 5px 14px rgba(0,0,0,1), inset 0 0 0 1px rgba(0,0,0,0.9)',
       }}
     >
       {/* Aura spills onto the deck */}
@@ -140,11 +144,7 @@ export function Pad({ pad, isActive, isSelecting, onTrigger, onEdit, onSelect }:
           <span
             className="text-[13px] font-bold leading-none"
             style={{
-              color: isActive
-                ? `color-mix(in srgb, ${c} 90%, #111)`
-                : hovered || hasSound
-                  ? `color-mix(in srgb, ${c} 75%, #111)`
-                  : 'rgba(0,0,0,0.5)',
+              color: hasSound || hovered ? darkText : 'rgba(0,0,0,0.4)',
             }}
           >
             {pad.label}
@@ -173,7 +173,7 @@ export function Pad({ pad, isActive, isSelecting, onTrigger, onEdit, onSelect }:
               <motion.div
                 key={i}
                 className="w-[2.5px] rounded-full"
-                style={{ background: `color-mix(in srgb, ${c} 80%, #333)` }}
+                style={{ background: darkText }}
                 animate={{ scaleY: [h, h * 0.4, h * 1.2, h * 0.55, h] }}
                 transition={{ duration: 0.44, repeat: Infinity, delay: i * 0.06, ease: 'easeInOut' }}
               />
@@ -186,10 +186,7 @@ export function Pad({ pad, isActive, isSelecting, onTrigger, onEdit, onSelect }:
           <p
             className="text-[11px] font-mono leading-tight truncate"
             style={{
-              color: hasSound
-                ? `color-mix(in srgb, ${c} 95%, #000)`
-                : 'rgba(0,0,0,0.45)',
-              textShadow: hasSound ? `0 0 8px ${c}88` : 'none',
+              color: hasSound ? darkText : 'rgba(0,0,0,0.35)',
             }}
           >
             {pad.soundName ?? 'empty'}
