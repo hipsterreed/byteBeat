@@ -21,4 +21,5 @@ export interface AgentMessage {
   role: 'user' | 'agent'
   content: string
   timestamp: number
+  sound?: Sound
 }

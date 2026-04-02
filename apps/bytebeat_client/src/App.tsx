@@ -42,9 +42,9 @@ export default function App() {
       <Toolbar />
 
       <div className="flex flex-1 overflow-hidden relative z-10">
-        <main className="flex-1 flex flex-col items-center justify-center gap-5 p-10">
+        <main className="flex-1 flex flex-col items-center justify-center gap-5 p-6">
           {/* Controller with reactive underglow */}
-          <div className="relative flex items-center justify-center w-full" style={{ maxWidth: 'min(580px, calc(100vw - 80px))' }}>
+          <div className="relative flex items-center justify-center w-full" style={{ maxWidth: 'min(960px, calc(130vh - 390px))' }}>
             {/* Underglow beneath the controller */}
             <div
               className="absolute pointer-events-none"

@@ -12,7 +12,21 @@ export const PREBAKED_SOUNDS = [
   { id: "fx_drop", name: "Drop Impact", category: "fx", prompt: "bass drop impact explosion", url: "" },
 ];
 
-export async function handleGenerate(env: Bindings, prompt: string) {
+/** e.g. "deep punchy kick drum with sub bass" → "deep_punchy_kick_drum_with_a3f1" */
+function promptToSlug(prompt: string): string {
+  const words = prompt
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, "")
+    .trim()
+    .split(/\s+/)
+    .slice(0, 5);
+  // Short hash of the full prompt so two prompts sharing the same first 5 words
+  // don't clobber each other's R2 file.
+  const hash = btoa(prompt).replace(/[^a-z0-9]/gi, "").slice(0, 4).toLowerCase();
+  return [...words, hash].join("_");
+}
+
+export async function handleGenerate(env: Bindings, prompt: string, name?: string) {
   if (!env.ELEVENLABS_API_KEY) throw new Error("ELEVENLABS_API_KEY is not set");
 
   const cacheKey = `sound:${btoa(prompt).slice(0, 32)}`;
@@ -22,7 +36,10 @@ export async function handleGenerate(env: Bindings, prompt: string) {
   if (cached) return cached;
 
   const audioBytes = await generateSoundEffect(prompt, env.ELEVENLABS_API_KEY);
-  const soundId = `gen_${crypto.randomUUID().slice(0, 8)}`;
+  const displayName = name ?? promptToName(prompt);
+  const soundId = name
+    ? name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '').slice(0, 40)
+    : promptToSlug(prompt);
   const r2Key = `sounds/${soundId}.mp3`;
 
   await env.AUDIO_BUCKET.put(r2Key, audioBytes, {
@@ -32,14 +49,43 @@ export async function handleGenerate(env: Bindings, prompt: string) {
 
   const result = {
     id: soundId,
-    name: promptToName(prompt),
+    name: displayName,
     url: `/audio/${r2Key}`,
     prompt,
     category: inferCategory(prompt),
   };
 
   await env.AUDIO_CACHE.put(cacheKey, JSON.stringify(result), { expirationTtl: 86400 });
+  await env.AUDIO_CACHE.put(`id:${soundId}`, JSON.stringify({
+    name: result.name, prompt: result.prompt, category: result.category,
+  }));
   return result;
+}
+
+export async function handleCommunitySounds(env: Bindings) {
+  const listed = await env.AUDIO_BUCKET.list({ prefix: "sounds/" });
+
+  // Fetch metadata from KV for each sound (stored during generation)
+  const sounds = await Promise.all(
+    listed.objects.map(async (obj) => {
+      const id = obj.key.replace("sounds/", "").replace(".mp3", "");
+
+      // Try to find cached metadata in KV by soundId
+      const meta = await env.AUDIO_CACHE.get(`id:${id}`, "json") as {
+        name: string; prompt: string; category: string;
+      } | null;
+
+      return {
+        id,
+        name: meta?.name ?? id,
+        url: `/audio/${obj.key}`,
+        prompt: meta?.prompt ?? "",
+        category: meta?.category ?? "misc",
+      };
+    })
+  );
+
+  return { sounds: sounds.reverse() };
 }
 
 export async function handleAudioServe(env: Bindings, key: string): Promise<Response> {

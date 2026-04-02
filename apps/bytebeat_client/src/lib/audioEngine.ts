@@ -50,3 +50,9 @@ export function triggerSound(soundId: string, velocity = 1): void {
 export function isLoaded(soundId: string): boolean {
   return players.get(soundId)?.loaded ?? false
 }
+
+export async function previewSound(soundId: string, url: string): Promise<void> {
+  await ensureAudioStarted()
+  await loadSound(soundId, url)
+  triggerSound(soundId)
+}

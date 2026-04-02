@@ -2,11 +2,11 @@ import type { Sound } from '../types'
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8787'
 
-export async function generateSound(prompt: string): Promise<Sound> {
+export async function generateSound(prompt: string, name?: string): Promise<Sound> {
   const res = await fetch(`${API_URL}/sounds/generate`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt }),
+    body: JSON.stringify({ prompt, ...(name ? { name } : {}) }),
   })
   if (!res.ok) {
     const body = await res.json().catch(() => null) as { error?: string } | null
@@ -36,6 +36,16 @@ export async function getSounds(): Promise<Sound[]> {
   if (!res.ok) throw new Error(`Failed to fetch sounds`)
   const data = await res.json()
   return data.sounds
+}
+
+export async function getCommunitySounds(): Promise<Sound[]> {
+  const res = await fetch(`${API_URL}/sounds/community`)
+  if (!res.ok) return []
+  const data = await res.json() as { sounds: Sound[] }
+  return data.sounds.map(s => ({
+    ...s,
+    url: s.url.startsWith('/') ? `${API_URL}${s.url}` : s.url,
+  }))
 }
 
 export async function searchSounds(query: string): Promise<Sound[]> {

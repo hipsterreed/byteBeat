@@ -5,35 +5,39 @@ import type { Pad as PadType } from '../types'
 interface PadProps {
   pad: PadType
   isActive: boolean
+  isSelecting: boolean
   onTrigger: () => void
   onEdit: () => void
+  onSelect: () => void
 }
 
-export function Pad({ pad, isActive, onTrigger, onEdit }: PadProps) {
+export function Pad({ pad, isActive, isSelecting, onTrigger, onEdit, onSelect }: PadProps) {
   const [hovered, setHovered] = useState(false)
   const c = pad.color
   const hasSound = !!pad.soundId
 
   // Background: empty = barely-tinted white, loaded = clearly colored, active = full bloom
   const bg = isActive
-    ? `color-mix(in srgb, ${c} 55%, white)`
+    ? `color-mix(in srgb, ${c} 65%, white)`
     : hovered
-      ? `color-mix(in srgb, ${c} ${hasSound ? 38 : 22}%, white)`
+      ? `color-mix(in srgb, ${c} ${hasSound ? 58 : 22}%, white)`
       : hasSound
-        ? `color-mix(in srgb, ${c} 28%, white)`
+        ? `color-mix(in srgb, ${c} 48%, white)`
         : `color-mix(in srgb, ${c} 9%, white)`
 
   const shadow = isActive
     ? `0 0 0 1px ${c}cc, 0 0 22px ${c}ee, 0 0 50px ${c}99, 0 0 90px ${c}55, inset 0 1px 1px rgba(255,255,255,0.7), inset 0 0 22px ${c}44`
-    : hovered
-      ? `0 5px 16px rgba(0,0,0,0.6), 0 2px 4px rgba(0,0,0,0.45), 0 0 18px ${c}55, inset 0 1px 1px rgba(255,255,255,0.92), inset 0 -2px 4px rgba(0,0,0,0.07)`
-      : hasSound
-        ? `0 7px 18px rgba(0,0,0,0.65), 0 2px 5px rgba(0,0,0,0.5), 0 0 10px ${c}33, inset 0 1px 1px rgba(255,255,255,0.9), inset 0 -2px 7px rgba(0,0,0,0.1)`
-        : `0 7px 18px rgba(0,0,0,0.72), 0 2px 5px rgba(0,0,0,0.55), inset 0 1px 1px rgba(255,255,255,0.92), inset 0 -2px 7px rgba(0,0,0,0.12)`
+    : hovered && hasSound
+      ? `0 5px 16px rgba(0,0,0,0.5), 0 2px 4px rgba(0,0,0,0.4), 0 0 28px ${c}99, 0 0 50px ${c}55, inset 0 1px 1px rgba(255,255,255,0.95), inset 0 -2px 4px rgba(0,0,0,0.06)`
+      : hovered
+        ? `0 5px 16px rgba(0,0,0,0.6), 0 2px 4px rgba(0,0,0,0.45), 0 0 18px ${c}55, inset 0 1px 1px rgba(255,255,255,0.92), inset 0 -2px 4px rgba(0,0,0,0.07)`
+        : hasSound
+          ? `0 0 0 1px ${c}66, 0 6px 18px rgba(0,0,0,0.55), 0 0 18px ${c}77, 0 0 38px ${c}44, inset 0 1px 1px rgba(255,255,255,0.95), inset 0 -2px 7px rgba(0,0,0,0.08)`
+          : `0 7px 18px rgba(0,0,0,0.72), 0 2px 5px rgba(0,0,0,0.55), inset 0 1px 1px rgba(255,255,255,0.92), inset 0 -2px 7px rgba(0,0,0,0.12)`
 
   return (
     <div
-      className="relative aspect-square rounded-[15px] p-[5px]"
+      className="relative aspect-[4/3] rounded-[15px] p-[5px]"
       style={{
         background: '#05050b',
         boxShadow: 'inset 0 3px 10px rgba(0,0,0,0.97), inset 0 0 0 1px rgba(0,0,0,0.75)',
@@ -41,19 +45,19 @@ export function Pad({ pad, isActive, onTrigger, onEdit }: PadProps) {
     >
       {/* Aura spills onto the deck */}
       <AnimatePresence>
-        {(isActive || hovered) && (
+        {(isActive || hovered || hasSound) && (
           <motion.div
             className="absolute pointer-events-none"
             style={{
-              inset: isActive ? '-16px' : '-6px',
+              inset: isActive ? '-16px' : hasSound ? '-10px' : '-6px',
               borderRadius: '24px',
-              background: `radial-gradient(circle at center, ${c}${isActive ? '66' : '28'} 0%, transparent 70%)`,
-              filter: 'blur(14px)',
+              background: `radial-gradient(circle at center, ${c}${isActive ? '77' : hasSound ? '44' : '28'} 0%, transparent 70%)`,
+              filter: `blur(${isActive ? 14 : hasSound ? 12 : 10}px)`,
             }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.14 }}
+            transition={{ duration: 0.18 }}
           />
         )}
       </AnimatePresence>
@@ -61,12 +65,16 @@ export function Pad({ pad, isActive, onTrigger, onEdit }: PadProps) {
       {/* Pad surface */}
       <motion.div
         className="relative w-full h-full rounded-[10px] cursor-pointer select-none flex flex-col justify-between p-2.5 overflow-hidden"
-        style={{ background: bg, boxShadow: shadow, transition: 'background 0.12s ease, box-shadow 0.12s ease' }}
+        style={{ background: bg, boxShadow: isSelecting ? `${shadow}, 0 0 0 2px ${c}99` : shadow, transition: 'background 0.12s ease, box-shadow 0.12s ease' }}
+        animate={isSelecting ? { rotate: [-1.5, 1.5, -1.5] } : { rotate: 0 }}
+        transition={isSelecting
+          ? { duration: 0.35, repeat: Infinity, ease: 'easeInOut', repeatDelay: Math.random() * 0.15 }
+          : { type: 'spring', stiffness: 600, damping: 22 }
+        }
         whileTap={{ scale: 0.89, y: 3 }}
-        transition={{ type: 'spring', stiffness: 600, damping: 22 }}
         onHoverStart={() => setHovered(true)}
         onHoverEnd={() => setHovered(false)}
-        onPointerDown={pad.soundId ? onTrigger : onEdit}
+        onPointerDown={isSelecting ? onSelect : pad.soundId ? onTrigger : onEdit}
       >
         {/* ── Active animations ── */}
         <AnimatePresence>
@@ -130,13 +138,13 @@ export function Pad({ pad, isActive, onTrigger, onEdit }: PadProps) {
         {/* Top row: pad number + edit button */}
         <div className="relative flex items-start justify-between z-10">
           <span
-            className="text-xs font-bold leading-none"
+            className="text-[13px] font-bold leading-none"
             style={{
               color: isActive
                 ? `color-mix(in srgb, ${c} 90%, #111)`
                 : hovered || hasSound
-                  ? `color-mix(in srgb, ${c} 70%, #222)`
-                  : 'rgba(0,0,0,0.45)',
+                  ? `color-mix(in srgb, ${c} 75%, #111)`
+                  : 'rgba(0,0,0,0.5)',
             }}
           >
             {pad.label}
@@ -176,11 +184,12 @@ export function Pad({ pad, isActive, onTrigger, onEdit }: PadProps) {
         {/* Bottom: sound name */}
         <div className="relative z-10">
           <p
-            className="text-[10px] font-mono leading-tight truncate"
+            className="text-[11px] font-mono leading-tight truncate"
             style={{
               color: hasSound
-                ? `color-mix(in srgb, ${c} 80%, #222)`
-                : 'rgba(0,0,0,0.38)',
+                ? `color-mix(in srgb, ${c} 95%, #000)`
+                : 'rgba(0,0,0,0.45)',
+              textShadow: hasSound ? `0 0 8px ${c}88` : 'none',
             }}
           >
             {pad.soundName ?? 'empty'}

@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import type { Bindings } from "./types";
-import { PREBAKED_SOUNDS, handleGenerate, handleAudioServe } from "./routes/sounds";
+import { PREBAKED_SOUNDS, handleGenerate, handleAudioServe, handleCommunitySounds } from "./routes/sounds";
 import { handleAgentSuggest } from "./routes/agent";
 import { sessionRoutes } from "./routes/session";
 
@@ -16,11 +16,16 @@ app.get("/health", (c) => c.json({ status: "ok", service: "bytebeat_api" }));
 
 app.get("/sounds", (c) => c.json({ sounds: PREBAKED_SOUNDS }));
 
+app.get("/sounds/community", async (c) => {
+  const result = await handleCommunitySounds(c.env);
+  return c.json(result);
+});
+
 app.post("/sounds/generate", async (c) => {
-  const { prompt } = await c.req.json<{ prompt: string }>();
+  const { prompt, name } = await c.req.json<{ prompt: string; name?: string }>();
   if (!prompt?.trim()) return c.json({ error: "prompt is required" }, 400);
   try {
-    const result = await handleGenerate(c.env, prompt.trim());
+    const result = await handleGenerate(c.env, prompt.trim(), name?.trim());
     return c.json(result);
   } catch (e) {
     return c.json({ error: e instanceof Error ? e.message : "Generation failed" }, 500);

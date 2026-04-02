@@ -79,6 +79,7 @@ interface AppState {
   agentMessages: AgentMessage[]
   sessionId: string
   sessionLoaded: boolean
+  selectingSound: Sound | null
 
   initSession: () => Promise<void>
   triggerPad: (padId: string) => Promise<void>
@@ -89,6 +90,7 @@ interface AppState {
   setEditingPad: (padId: string | null) => void
   toggleAgent: () => void
   addAgentMessage: (msg: AgentMessage) => void
+  setSelectingSound: (sound: Sound | null) => void
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -97,17 +99,11 @@ export const useAppStore = create<AppState>((set, get) => ({
   isPlaying: false,
   activePadIds: [],
   editingPadId: null,
-  agentOpen: false,
+  agentOpen: true,
   sessionId: '',
   sessionLoaded: false,
-  agentMessages: [
-    {
-      id: 'welcome',
-      role: 'agent',
-      content: "Hey! I'm your AI DJ. Tell me what kind of beat you want and I'll help you build it. I can generate sounds, suggest patterns, or vibe-check your session.",
-      timestamp: Date.now(),
-    },
-  ],
+  selectingSound: null,
+  agentMessages: [],
 
   initSession: async () => {
     const sessionId = getOrCreateSessionId()
@@ -197,4 +193,5 @@ export const useAppStore = create<AppState>((set, get) => ({
   toggleAgent: () => set(s => ({ agentOpen: !s.agentOpen })),
   addAgentMessage: (msg) =>
     set(s => ({ agentMessages: [...s.agentMessages, msg] })),
+  setSelectingSound: (sound) => set({ selectingSound: sound }),
 }))

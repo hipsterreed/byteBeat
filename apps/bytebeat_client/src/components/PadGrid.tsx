@@ -53,8 +53,8 @@ function Knob({ label, color, value = 0.65 }: { label: string; color: string; va
       </div>
 
       <span
-        className="text-[7px] font-mono tracking-[0.2em] uppercase"
-        style={{ color: 'rgba(255,255,255,0.45)' }}
+        className="text-[9px] font-mono tracking-[0.15em] uppercase"
+        style={{ color: 'rgba(255,255,255,0.55)' }}
       >
         {label}
       </span>
@@ -67,10 +67,13 @@ export function PadGrid() {
   const activePadIds = useAppStore(s => s.activePadIds)
   const triggerPad = useAppStore(s => s.triggerPad)
   const setEditingPad = useAppStore(s => s.setEditingPad)
+  const selectingSound = useAppStore(s => s.selectingSound)
+  const setPadSound = useAppStore(s => s.setPadSound)
+  const setSelectingSound = useAppStore(s => s.setSelectingSound)
 
   return (
     <div
-      className="relative flex flex-col gap-6 rounded-[36px] p-8"
+      className="relative flex flex-col gap-5 rounded-[36px] p-8"
       style={{
         background: 'linear-gradient(160deg, #1c1c27 0%, #111118 55%, #151520 100%)',
         boxShadow:
@@ -90,8 +93,8 @@ export function PadGrid() {
             }}
           />
           <span
-            className="text-[9px] font-mono tracking-[0.28em] uppercase"
-            style={{ color: 'rgba(255,255,255,0.45)' }}
+            className="text-[11px] font-mono tracking-[0.22em] uppercase"
+            style={{ color: 'rgba(255,255,255,0.65)' }}
           >
             ByteBeat MK1
           </span>
@@ -99,8 +102,8 @@ export function PadGrid() {
 
         <div className="flex items-center gap-3">
           <span
-            className="text-[7px] font-mono tracking-widest uppercase"
-            style={{ color: 'rgba(255,255,255,0.4)' }}
+            className="text-[10px] font-mono tracking-widest uppercase"
+            style={{ color: 'rgba(255,255,255,0.55)' }}
           >
             Bank
           </span>
@@ -115,9 +118,9 @@ export function PadGrid() {
                   }}
                 />
                 <span
-                  className="text-[7px] font-mono"
+                  className="text-[10px] font-mono font-bold"
                   style={{
-                    color: i === 0 ? 'rgba(196,181,253,0.85)' : 'rgba(255,255,255,0.35)',
+                    color: i === 0 ? 'rgba(196,181,253,0.95)' : 'rgba(255,255,255,0.45)',
                   }}
                 >
                   {b}
@@ -129,14 +132,21 @@ export function PadGrid() {
       </div>
 
       {/* 4×4 pad grid */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-4 gap-5">
         {pads.map(pad => (
           <Pad
             key={pad.id}
             pad={pad}
             isActive={activePadIds.includes(pad.id)}
+            isSelecting={!!selectingSound}
             onTrigger={() => triggerPad(pad.id)}
             onEdit={() => setEditingPad(pad.id)}
+            onSelect={() => {
+              if (selectingSound) {
+                setPadSound(pad.id, selectingSound)
+                setSelectingSound(null)
+              }
+            }}
           />
         ))}
       </div>
@@ -159,8 +169,8 @@ export function PadGrid() {
           ].map(({ label, width, color1, color2 }) => (
             <div key={label} className="flex items-center gap-2">
               <span
-                className="text-[7px] font-mono tracking-widest uppercase"
-                style={{ color: 'rgba(255,255,255,0.5)' }}
+                className="text-[10px] font-mono tracking-widest uppercase"
+                style={{ color: 'rgba(255,255,255,0.6)' }}
               >
                 {label}
               </span>
